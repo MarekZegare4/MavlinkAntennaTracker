@@ -1,20 +1,22 @@
 from pymavlink import mavutil
 import signal
+import time
+from tqdm import tqdm
+
+timeOut = 10
 
 def handler(signum, frame):
-    print("Forever is over!")
     raise Exception("end of time")
 
 def loop_forever():
-    import time
-    while 1:
-        print("sec")
+    #signal.alarm(0) jak coś zadziała
+    for i in tqdm(range(timeOut), desc="Time-out"):
         time.sleep(1)
 
 signal.signal(signal.SIGALRM, handler)
-signal.alarm(10)
+signal.alarm(timeOut)
 try:
     loop_forever()
-except Exception, exc: 
-    print(exc) 
+except Exception: 
+    print("Connection time-out") 
 
