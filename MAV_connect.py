@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-
-'''
-test mavlink messages
-'''
-from __future__ import print_function
-
 from pymavlink import mavutil
 
 baudRate = 9600
@@ -23,11 +16,13 @@ def connect(baudRate):
         return 0
     else:
         print(serial_connections)
-        device = serial_connections[0]
+        which_serial = input("Choose from 0-" + str(len(serial_connections)))
+        device = serial_connections[which_serial]
         master = mavutil.mavlink_connection(device, baud=baudRate)
         wait_heartbeat(master)
         print("Sending all message types")
         return 1
+
 
 connect(baudRate)
 
