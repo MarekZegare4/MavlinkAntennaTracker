@@ -5,17 +5,9 @@ test mavlink messages
 '''
 from __future__ import print_function
 
-from pymavlink import mavtest, mavutil
+from pymavlink import mavutil
 
-from argparse import ArgumentParser
-parser = ArgumentParser(description=__doc__)
-
-parser.add_argument("--baudrate", type=int,
-                  help="master port baud rate", default=115200)
-parser.add_argument("--device", required=True, help="serial device")
-parser.add_argument("--source-system", dest='SOURCE_SYSTEM', type=int,
-                  default=255, help='MAVLink source system for this GCS')
-args = parser.parse_args()
+baudRate = 9600
 
 def wait_heartbeat(m):
     '''wait for a heartbeat so we know the target system IDs'''
@@ -24,10 +16,18 @@ def wait_heartbeat(m):
     print("Heartbeat from APM (system %u component %u)" % (m.target_system, m.target_component))
 
 # create a mavlink serial instance
-master = mavutil.mavlink_connection(args.device, baud=args.baudrate, source_system=args.SOURCE_SYSTEM)
+def connect(baudRate):
+    serial_connections = mavutil.auto_detect_serial()
+    if len(serial_connections) == 0:
+        print('No serial devices connected')
+        return 0
+    else:
+        print(serial_connections)
+        device = serial_connections[0]
+        master = mavutil.mavlink_connection(device, baud=baudRate)
+        wait_heartbeat(master)
+        print("Sending all message types")
+        return 1
 
-# wait for the heartbeat msg to find the system ID
-wait_heartbeat(master)
+connect(baudRate)
 
-print("Sending all message types")
-mavtest.generate_outputs(master.mav)
