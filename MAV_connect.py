@@ -12,7 +12,7 @@
 #  ====================================================
 
 from pymavlink import mavutil
-
+import serial.tools.list_ports
 baudRate = 9600
 
 def wait_heartbeat(m):
@@ -22,20 +22,25 @@ def wait_heartbeat(m):
     print("Heartbeat from APM (system %u component %u)" % (m.target_system, m.target_component))
 
 # create a mavlink serial instance
-def connect(baudRate):
-    serial_connections = mavutil.auto_detect_serial()
-    if len(serial_connections) == 0:
+
+ports = serial.tools.list_ports.comports()
+# 'com_list' contains list of all com ports
+def connect_serial(baudRate):
+    ports = serial.tools.list_ports.comports()
+    com_list = []
+    for p in ports:
+        print(p)
+        com_list.append(p.device)
+    if len(com_list) == 0:
         print('No serial devices connected')
         return 0
     else:
-        print(serial_connections)
-        which_serial = input("Choose from 0-" + str(len(serial_connections)))
-        device = serial_connections[which_serial]
-        master = mavutil.mavlink_connection(device, baud=baudRate)
+        which_serial = int(input("Choose from 1-" + str(len(com_list))+" -> "))
+        adress = str(com_list[which_serial - 1])
+        master = mavutil.mavlink_connection(adress, baud=baudRate)
         wait_heartbeat(master)
         print("Sending all message types")
-        return 1
+        return 
 
-
-connect(baudRate)
+connect_serial(baudRate)
 
