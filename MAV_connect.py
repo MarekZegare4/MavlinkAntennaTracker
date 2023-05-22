@@ -1,10 +1,10 @@
 #  ====================================================
 # || 1. TX -> Tracker
 # || 
-# || 2. TX -> Tracker -> Komputer
+# || 2. TX -> Tracker -> GCS
 # ||
-# ||
-# ||
+# || 3. TX -> Tracker -> GCS
+# ||       <- RTK
 # ||
 # ||
 # ||
@@ -14,7 +14,9 @@
 from pymavlink import mavutil
 import serial.tools.list_ports
 from pick import pick
+
 baudRate = 9600
+ports = serial.tools.list_ports.comports()
 
 def wait_heartbeat(m):
     '''wait for a heartbeat so we know the target system IDs'''
@@ -22,10 +24,6 @@ def wait_heartbeat(m):
     msg = m.recv_match(type='HEARTBEAT', blocking=True)
     print("Heartbeat from APM (system %u component %u)" % (m.target_system, m.target_component))
 
-# create a mavlink serial instance
-
-ports = serial.tools.list_ports.comports()
-# 'com_list' contains list of all com ports
 def connect_serial(baudRate):
     ports = serial.tools.list_ports.comports()
     com_list = []
@@ -48,4 +46,5 @@ def connect_serial(baudRate):
         return 1
 
 connect_serial(baudRate)
+
 
