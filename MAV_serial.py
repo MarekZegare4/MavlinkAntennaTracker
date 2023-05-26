@@ -15,6 +15,7 @@ from pymavlink import mavutil
 import serial.tools.list_ports
 from pick import pick
 import time
+import os.path
 
 baudRate = 9600
 ports = serial.tools.list_ports.comports()
@@ -60,15 +61,41 @@ def wait_for_fix():
         time.sleep(1.0 - ((time.time() - starttime) % 1.0))
     
 def set_tracker_pos(tracker_lat, tracker_lon, tracker_alt):
-    print("To save tracker's location press any button")
-    button_pressed = False
-    while not button_pressed:
+    path = './LastPos.txt'
+    is_LastPos = os.path.isfile(path)
+    if is_LastPos == True:
+        title = ("Saved postion found. Do you want to use it?")
+        options = ['Yes','No']
+        option, index = pick(options, title)
+        if index == 0:
+            file = open("LastPos.txt", "r")
+            tracker_lat = int(file.readline())
+            tracker_lon = int(file.readline())
+            tracker_alt = int(file.readline())
+            file.close()
+        else:
+            wait_for_fix()
+            input("Press any button to save tracker's location")
+            gps_data = connection.recv_match(type='GPS_RAW_INT', blocking=True)
+            tracker_lat = gps_data.lat
+            tracker_lon = gps_data.lon
+            tracker_alt = gps_data.alt
+            LastPos = (str(tracker_lat)+'\n'+str(tracker_lon)+'\n'+str(tracker_alt)+'\n')
+            file = open("LastPos.txt", "w")
+            file.write(LastPos)
+            file.close()
+    else:
+        wait_for_fix()
+        input("Press any button to save tracker's location")
         gps_data = connection.recv_match(type='GPS_RAW_INT', blocking=True)
         tracker_lat = gps_data.lat
         tracker_lon = gps_data.lon
         tracker_alt = gps_data.alt
+        LastPos = (str(tracker_lat)+'\n'+str(tracker_lon)+'\n'+str(tracker_alt)+'\n')
+        file = open("LastPos.txt", "w")
+        file.write(LastPos)
+        file.close()
 
 connection = connect_serial(baudRate)
-wait_for_fix()
 set_tracker_pos(tracker_lat, tracker_lon, tracker_alt)
    
