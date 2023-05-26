@@ -14,6 +14,7 @@
 from pymavlink import mavutil
 import serial.tools.list_ports
 from pick import pick
+import time
 
 baudRate = 9600
 ports = serial.tools.list_ports.comports()
@@ -42,9 +43,16 @@ def connect_serial(baudRate):
         master = mavutil.mavlink_connection(adress, baud=baudRate)
         print(master)
         wait_heartbeat(master)
-        print("Sending all message types")
-        return 1
+        return master
 
-connect_serial(baudRate)
+connection = connect_serial(baudRate)
 
+starttime = time.time()
+while True:
+    gps_data = connection.recv_match(type='GPS_RAW_INT', blocking=True)
+    lat = gps_data.lat
+    lon = gps_data.lon
+    alt = gps_data.alt
+    print(lat, lon, alt)
+    time.sleep(1.0 - ((time.time() - starttime) % 1.0))
 
