@@ -24,6 +24,15 @@ tracker_lat = 0
 tracker_lon = 0
 tracker_alt = 0
 
+def startup():
+    print("    __  ___           ______                __")
+    print("   /  |/  /______   _/_  ___________ ______/ /__")
+    print("  / /|_/ / __ `| | / // / / ___/ __ `/ ___/ //_/")
+    print(" / /  / / /_/ /| |/ // / / /  / /_/ / /__/ ,<   ")
+    print("/_/  /_/\__,_/ |___//_/ /_/   \__,_/\___/_/|_|  ")
+                                                
+
+
 def wait_heartbeat(m):
     print("Waiting for APM heartbeat")
     msg = m.recv_match(type='HEARTBEAT', blocking=True)
@@ -73,6 +82,7 @@ def set_tracker_pos(tracker_lat, tracker_lon, tracker_alt):
             tracker_lon = int(file.readline())
             tracker_alt = int(file.readline())
             file.close()
+            print("Position set")
         else:
             wait_for_fix()
             input("Press any button to save tracker's location")
@@ -96,6 +106,13 @@ def set_tracker_pos(tracker_lat, tracker_lon, tracker_alt):
         file.write(LastPos)
         file.close()
 
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+startup()
+time.sleep(2)
+clear_screen()
 connection = connect_serial(baudRate)
+clear_screen()
 set_tracker_pos(tracker_lat, tracker_lon, tracker_alt)
    
