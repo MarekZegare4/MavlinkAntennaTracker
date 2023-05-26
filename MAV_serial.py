@@ -19,11 +19,14 @@ import time
 baudRate = 9600
 ports = serial.tools.list_ports.comports()
 
+tracker_lat = 0
+tracker_lon = 0
+tracker_alt = 0
+
 def wait_heartbeat(m):
-    '''wait for a heartbeat so we know the target system IDs'''
     print("Waiting for APM heartbeat")
     msg = m.recv_match(type='HEARTBEAT', blocking=True)
-    print("Heartbeat from APM (system %u component %u)" % (m.target_system, m.target_component))
+    print("Connected")
 
 def connect_serial(baudRate):
     ports = serial.tools.list_ports.comports()
@@ -45,14 +48,27 @@ def connect_serial(baudRate):
         wait_heartbeat(master)
         return master
 
+def wait_for_fix():
+    starttime = time.time()
+    print('Waiting for GPS fix')
+    fixed = False
+    while not fixed:
+        gps_data = connection.recv_match(type='GPS_RAW_INT', blocking=True)
+        fix = gps_data.fix_type
+        if fix == 3:
+            fixed = True
+        time.sleep(1.0 - ((time.time() - starttime) % 1.0))
+    
+def set_tracker_pos(tracker_lat, tracker_lon, tracker_alt):
+    print("To save tracker's location press any button")
+    button_pressed = False
+    while not button_pressed:
+        gps_data = connection.recv_match(type='GPS_RAW_INT', blocking=True)
+        tracker_lat = gps_data.lat
+        tracker_lon = gps_data.lon
+        tracker_alt = gps_data.alt
+
 connection = connect_serial(baudRate)
-
-starttime = time.time()
-while True:
-    gps_data = connection.recv_match(type='GPS_RAW_INT', blocking=True)
-    lat = gps_data.lat
-    lon = gps_data.lon
-    alt = gps_data.alt
-    print(lat, lon, alt)
-    time.sleep(1.0 - ((time.time() - starttime) % 1.0))
-
+wait_for_fix()
+set_tracker_pos(tracker_lat, tracker_lon, tracker_alt)
+   
