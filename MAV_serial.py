@@ -20,17 +20,21 @@ import os.path
 baudRate = 9600
 ports = serial.tools.list_ports.comports()
 
-tracker_lat = 0
-tracker_lon = 0
-tracker_alt = 0
+tracker_lat = 0.0
+tracker_lon = 0.0
+tracker_alt = 0.0
 
 def startup():
-    print("    __  ___           ______                __")
-    print("   /  |/  /______   _/_  ___________ ______/ /__")
-    print("  / /|_/ / __ `| | / // / / ___/ __ `/ ___/ //_/")
-    print(" / /  / / /_/ /| |/ // / / /  / /_/ / /__/ ,<   ")
-    print("/_/  /_/\__,_/ |___//_/ /_/   \__,_/\___/_/|_|  ")
-                                                
+    print("   __  ___             __ _        __  ")
+    print("  /  |/  /___ _ _  __ / /(_)___   / /__")
+    print(" / /|_/ // _ `/| |/ // // // _ \ /  '_/")
+    print("/_/  /_/ \_,_/ |___//_//_//_//_//_/\_\ ")
+    print(" ______                 __             ")
+    print("/_  __/____ ___ _ ____ / /__ ___  ____ ")
+    print(" / /  / __// _ `// __//  '_// -_)/ __/ ")
+    print("/_/  /_/   \_,_/ \__//_/\_\ \__//_/    ")
+                                       
+
 
 
 def wait_heartbeat(m):
@@ -69,7 +73,10 @@ def wait_for_fix():
             fixed = True
         time.sleep(1.0 - ((time.time() - starttime) % 1.0))
     
-def set_tracker_pos(tracker_lat, tracker_lon, tracker_alt):
+def set_tracker_pos():
+    global tracker_lat
+    global tracker_lon
+    global tracker_alt
     path = './LastPos.txt'
     is_LastPos = os.path.isfile(path)
     if is_LastPos == True:
@@ -109,10 +116,16 @@ def set_tracker_pos(tracker_lat, tracker_lon, tracker_alt):
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
+#def GeocentricLat(tracker_lat):
+
+
+    
 startup()
 time.sleep(2)
 clear_screen()
 connection = connect_serial(baudRate)
 clear_screen()
-set_tracker_pos(tracker_lat, tracker_lon, tracker_alt)
+set_tracker_pos()
+print(tracker_lat)
+print(tracker_lon)
    
