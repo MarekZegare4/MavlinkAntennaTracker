@@ -55,10 +55,8 @@ def connect_serial(baudRate):
     else:
         title = 'Select port'
         option, index = pick(name_list, title)
-        print(index)
         adress = str(com_list[index])
         master = mavutil.mavlink_connection(adress, baud=baudRate)
-        print(master)
         wait_heartbeat(master)
         return master
 
@@ -116,16 +114,16 @@ def set_tracker_pos():
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-#def GeocentricLat(tracker_lat):
+def print_all():
+    print(tracker_lat)
+    print(tracker_lon)
+    print(tracker_alt)
 
-
-    
 startup()
 time.sleep(2)
 clear_screen()
 connection = connect_serial(baudRate)
 clear_screen()
 set_tracker_pos()
-print(tracker_lat)
-print(tracker_lon)
+print_all()
    
