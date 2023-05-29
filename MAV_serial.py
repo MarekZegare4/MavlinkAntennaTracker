@@ -5,10 +5,6 @@
 # ||
 # || 3. TX -> Tracker -> GCS
 # ||       <- RTK
-# ||
-# ||
-# ||
-# ||
 #  ====================================================
 
 from pymavlink import mavutil
@@ -33,12 +29,10 @@ def startup():
     print("/_  __/____ ___ _ ____ / /__ ___  ____ ")
     print(" / /  / __// _ `// __//  '_// -_)/ __/ ")
     print("/_/  /_/   \_,_/ \__//_/\_\ \__//_/    ")
+    time.sleep(2)
                                        
-
-
-
 def wait_heartbeat(m):
-    print("Waiting for APM heartbeat")
+    print("Waiting for heartbeat")
     msg = m.recv_match(type='HEARTBEAT', blocking=True)
     print("Connected")
 
@@ -71,6 +65,32 @@ def wait_for_fix():
             fixed = True
         time.sleep(1.0 - ((time.time() - starttime) % 1.0))
     
+def get_gps_data():
+    global tracker_lat
+    global tracker_lon
+    global tracker_alt
+    lat_buf = 0
+    lon_buf = 0
+    alt_buf = 0
+    for i in range(10):
+        gps_data = connection.recv_match(type='GPS_RAW_INT', blocking=True)
+        lat_buf += gps_data.lat
+        lon_buf += gps_data.lon
+        alt_buf += gps_data.alt
+        print(i, gps_data)
+    tracker_lat = int(lat_buf / 10)
+    tracker_lon = int(lon_buf / 10)
+    tracker_alt = int(alt_buf / 10)
+    print(tracker_alt, tracker_lat, tracker_lon) # <- Debug
+
+def save_tracker_pos():
+    input("Press any button to save tracker's location")
+    get_gps_data()
+    LastPos = (str(tracker_lat)+'\n'+str(tracker_lon)+'\n'+str(tracker_alt)+'\n')
+    file = open("LastPos.txt", "w")
+    file.write(LastPos)
+    file.close()
+
 def set_tracker_pos():
     global tracker_lat
     global tracker_lon
@@ -80,8 +100,8 @@ def set_tracker_pos():
     if is_LastPos == True:
         title = ("Saved postion found. Do you want to use it?")
         options = ['Yes','No']
-        option, index = pick(options, title)
-        if index == 0:
+        picked = pick(options, title)
+        if picked[1] == 0:
             file = open("LastPos.txt", "r")
             tracker_lat = int(file.readline())
             tracker_lon = int(file.readline())
@@ -90,26 +110,10 @@ def set_tracker_pos():
             print("Position set")
         else:
             wait_for_fix()
-            input("Press any button to save tracker's location")
-            gps_data = connection.recv_match(type='GPS_RAW_INT', blocking=True)
-            tracker_lat = gps_data.lat
-            tracker_lon = gps_data.lon
-            tracker_alt = gps_data.alt
-            LastPos = (str(tracker_lat)+'\n'+str(tracker_lon)+'\n'+str(tracker_alt)+'\n')
-            file = open("LastPos.txt", "w")
-            file.write(LastPos)
-            file.close()
+            save_tracker_pos()
     else:
         wait_for_fix()
-        input("Press any button to save tracker's location")
-        gps_data = connection.recv_match(type='GPS_RAW_INT', blocking=True)
-        tracker_lat = gps_data.lat
-        tracker_lon = gps_data.lon
-        tracker_alt = gps_data.alt
-        LastPos = (str(tracker_lat)+'\n'+str(tracker_lon)+'\n'+str(tracker_alt)+'\n')
-        file = open("LastPos.txt", "w")
-        file.write(LastPos)
-        file.close()
+        save_tracker_pos()
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -119,11 +123,12 @@ def print_all():
     print(tracker_lon)
     print(tracker_alt)
 
+#--------------------------------PROGRAM-LOOP--------------------------------
 startup()
-time.sleep(2)
 clear_screen()
 connection = connect_serial(baudRate)
 clear_screen()
 set_tracker_pos()
-print_all()
+print_all() # <- Debug
+
    
