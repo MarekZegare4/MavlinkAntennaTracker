@@ -12,6 +12,9 @@ import serial.tools.list_ports
 from pick import pick
 import time
 import os.path
+import math
+from pyproj import Geod
+import numpy as np
 
 baudRate = 9600
 ports = serial.tools.list_ports.comports()
@@ -118,17 +121,39 @@ def set_tracker_pos():
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
+def EarthRadiusInMeters(lat):
+    a = 6378137.0
+    b = 6356752.3
+    cos = math.cos(np.deg2rad(lat))
+    sin = math.sin(np.deg2rad(lat))
+    t1 = a * a * cos
+    t2 = b * b * sin
+    t3 = a * cos
+    t4 = b * sin
+    return math.sqrt((t1*t1 + t2*t2) / (t3*t3 + t4*t4))
+
+def angles(lat, lon, alt):
+    g = Geod(ellps='WGS84')
+    az1, az2, distance = g.inv(lat, lon, tracker_lat, tracker_lon)
+    h = alt + EarthRadiusInMeters(lat) - EarthRadiusInMeters(tracker_lat)
+    altitude = np.rad2deg(math.atan(h/distance))
+    print(az1, az2, distance, altitude)
+
 def print_all():
-    print(tracker_lat)
-    print(tracker_lon)
-    print(tracker_alt)
+    time.sleep(1)
+    print(tracker_lat, end='\r')
+    time.sleep(1)
+    print(tracker_lon, end='\r')
+    time.sleep(1)
+    print(tracker_alt, end='\r')
+    time.sleep(1)
 
 #--------------------------------PROGRAM-LOOP--------------------------------
+
 startup()
 clear_screen()
 connection = connect_serial(baudRate)
 clear_screen()
 set_tracker_pos()
 print_all() # <- Debug
-
    
