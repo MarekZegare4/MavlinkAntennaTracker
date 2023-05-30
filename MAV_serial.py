@@ -12,9 +12,8 @@ import serial.tools.list_ports
 from pick import pick
 import time
 import os.path
-import math
+from math import sqrt, sin, cos, asin, degrees, radians
 from pyproj import Geod
-import numpy as np
 
 baudRate = 9600
 ports = serial.tools.list_ports.comports()
@@ -122,15 +121,15 @@ def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def cart(lat, lon, alt):
-    lat_rad = math.radians(lat)
-    lon_rad = math.radians(lon)
+    lat_rad = radians(lat)
+    lon_rad = radians(lon)
     flat_factor = 1/298.257223563
     e_squared = 2*flat_factor - flat_factor**2
     a = 6378137.0
-    N = a/(math.sqrt(1-e_squared*math.sin(lat_rad)**2))
-    x = (N + alt)*math.cos(lat_rad)*math.cos(lon_rad)
-    y = (N + alt)*math.cos(lat_rad)*math.sin(lon_rad)
-    z = ((1-e_squared)*N + alt)*math.sin(lat_rad)
+    N = a/(sqrt(1-e_squared*sin(lat_rad)**2))
+    x = (N + alt)*cos(lat_rad)*cos(lon_rad)
+    y = (N + alt)*cos(lat_rad)*sin(lon_rad)
+    z = ((1-e_squared)*N + alt)*sin(lat_rad)
     return x, y, z
 
 def angles(lat, lon, alt):
@@ -143,9 +142,9 @@ def angles(lat, lon, alt):
         azimuth -= 360
     mav_coord = cart(lat, lon, alt)
     track_coord = cart(tracker_lat, tracker_lon, tracker_alt)
-    dist = math.sqrt((mav_coord[0] - track_coord[0])**2 + (mav_coord[1] - track_coord[1])**2 + (mav_coord[2] - track_coord[2])**2)
+    dist = sqrt((mav_coord[0] - track_coord[0])**2 + (mav_coord[1] - track_coord[1])**2 + (mav_coord[2] - track_coord[2])**2)
     h = alt - tracker_alt
-    altitude = math.degrees(math.asin(h/dist))
+    altitude = degrees(asin(h/dist))
     return azimuth, dist, altitude
 
 def print_all():
