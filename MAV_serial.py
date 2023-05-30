@@ -19,8 +19,8 @@ import numpy as np
 baudRate = 9600
 ports = serial.tools.list_ports.comports()
 
-tracker_lat = 0.0
-tracker_lon = 0.0
+tracker_lat = 53.481169
+tracker_lon = 14.708257
 tracker_alt = 0.0
 
 def startup():
@@ -121,23 +121,32 @@ def set_tracker_pos():
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-def EarthRadiusInMeters(lat):
+def cart(lat, lon, alt):
+    lat_rad = math.radians(lat)
+    lon_rad = math.radians(lon)
+    flat_factor = 1/298.257223563
+    e_squared = 2*flat_factor - flat_factor**2
     a = 6378137.0
-    b = 6356752.3
-    cos = math.cos(np.deg2rad(lat))
-    sin = math.sin(np.deg2rad(lat))
-    t1 = a * a * cos
-    t2 = b * b * sin
-    t3 = a * cos
-    t4 = b * sin
-    return math.sqrt((t1*t1 + t2*t2) / (t3*t3 + t4*t4))
+    N = a/(math.sqrt(1-e_squared*math.sin(lat_rad)**2))
+    x = (N + alt)*math.cos(lat_rad)*math.cos(lon_rad)
+    y = (N + alt)*math.cos(lat_rad)*math.sin(lon_rad)
+    z = ((1-e_squared)*N + alt)*math.sin(lat_rad)
+    return x, y, z
 
 def angles(lat, lon, alt):
     g = Geod(ellps='WGS84')
     az1, az2, distance = g.inv(lat, lon, tracker_lat, tracker_lon)
-    h = alt + EarthRadiusInMeters(lat) - EarthRadiusInMeters(tracker_lat)
-    altitude = np.rad2deg(math.atan(h/distance))
-    print(az1, az2, distance, altitude)
+    azimuth = 90 - az2
+    if (azimuth < 0.0):
+        azimuth += 360
+    if (azimuth > 360):
+        azimuth -= 360
+    mav_coord = cart(lat, lon, alt)
+    track_coord = cart(tracker_lat, tracker_lon, tracker_alt)
+    dist = math.sqrt((mav_coord[0] - track_coord[0])**2 + (mav_coord[1] - track_coord[1])**2 + (mav_coord[2] - track_coord[2])**2)
+    h = alt - tracker_alt
+    altitude = math.degrees(math.asin(h/dist))
+    return azimuth, dist, altitude
 
 def print_all():
     time.sleep(1)
@@ -150,10 +159,11 @@ def print_all():
 
 #--------------------------------PROGRAM-LOOP--------------------------------
 
-startup()
-clear_screen()
-connection = connect_serial(baudRate)
-clear_screen()
-set_tracker_pos()
-print_all() # <- Debug
+#startup()
+#clear_screen()
+#connection = connect_serial(baudRate)
+#clear_screen()
+#set_tracker_pos()
+#print_all() # <- Debug
+print(angles(53.597937, 14.663008, 200))
    
