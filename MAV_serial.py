@@ -165,5 +165,6 @@ def print_all():
 #clear_screen()
 #set_tracker_pos()
 #print_all() # <- Debug
+
 print(angles(53.597937, 14.663008, 200))
    
