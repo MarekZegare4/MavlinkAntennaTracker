@@ -37,15 +37,21 @@ def rotate_globe(lat, lon, alt):
     bz = (brp[0] * asin) + (brp[2] * acos)
     return bx, by, bz
 
-
 def calculate_azimuth():
-    a = cart(53.481254, 14.708217, 0.0)
-    b = rotate_globe(53.481322, 14.709963, 100) #prawo
-    #b = cart(53.482147, 14.708025, 0) #góra
+    a = cart(tracker_lat, tracker_lon, tracker_alt)
+    b = rotate_globe(53.481311, 14.716203, 100) #prawo
+    #b = rotate_globe(53.482147, 14.708025, 0) #góra
     x = b[0] - a[0]
     y = b[1] - a[1]
     z = b[2] - a[2]
-    azimuth = math.degrees(math.atan(y/x))
-    print(azimuth)
+    theta = math.degrees(math.atan(y/x))
+    azimuth = 90 - theta
+    if (azimuth < 0.0):
+        azimuth += 360
+    if (azimuth > 360):
+        azimuth -= 360
+    R = math.sqrt(x**2 + y**2 + z**2)
+    altitude = math.degrees(math.asin(z/R))
+    print(azimuth, altitude)
 
 calculate_azimuth()

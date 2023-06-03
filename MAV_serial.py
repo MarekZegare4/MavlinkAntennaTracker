@@ -14,13 +14,15 @@ import time
 import os.path
 from math import sqrt, sin, cos, asin, degrees, radians
 from pyproj import Geod
+import numpy as np
 
 baudRate = 9600
 ports = serial.tools.list_ports.comports()
 
-tracker_lat = 53.481169
-tracker_lon = 14.708257
-tracker_alt = 120
+tracker_lat = 0
+tracker_lon = 0
+tracker_alt = 0
+precision = 10000000.0
 
 def startup():
     print("   __  ___             __ _        __  ")
@@ -80,10 +82,10 @@ def get_gps_data():
         lon_buf += gps_data.lon
         alt_buf += gps_data.alt
         print(i, gps_data)
-    tracker_lat = int(lat_buf / 10)
-    tracker_lon = int(lon_buf / 10)
-    tracker_alt = int(alt_buf / 10)
-    print(tracker_alt, tracker_lat, tracker_lon) # <- Debug
+    tracker_lat = float(lat_buf / (10 * precision)) # convert to degrees
+    tracker_lon = float(lon_buf / (10 * precision)) 
+    tracker_alt = float(alt_buf / (10 * 1000)) # convert to from milimeters
+    print(tracker_lat, tracker_lon, tracker_alt) # <- Debug
 
 def save_tracker_pos():
     input("Press any button to save tracker's location")
@@ -105,9 +107,9 @@ def set_tracker_pos():
         picked = pick(options, title)
         if picked[1] == 0:
             file = open("LastPos.txt", "r")
-            tracker_lat = int(file.readline())
-            tracker_lon = int(file.readline())
-            tracker_alt = int(file.readline())
+            tracker_lat = float(file.readline())
+            tracker_lon = float(file.readline())
+            tracker_alt = float(file.readline())
             file.close()
             print("Position set")
         else:
@@ -163,18 +165,18 @@ clear_screen()
 connection = connect_serial(baudRate)
 clear_screen()
 set_tracker_pos()
-print_all() # <- Debug
 
 while True:
     gps_data = connection.recv_match(type='GPS_RAW_INT', blocking=True)
-    lat = gps_data.lat / 1000000
-    lon = gps_data.lon / 1000000
-    alt = gps_data.alt / 1000000
-    azimuth_buf2 = 0
-    dist_buf2 = 0
-    altitude_buf2 = 0
-    azimuth_buf, dist_buf, altitude_buf = angles(lat, lon, alt)
-    azimuth, dist, altitude = azimuth_buf - azimuth_buf2, dist_buf - dist_buf2, altitude_buf - altitude_buf2
-    azimuth_buf2, dist_buf2, altitude_buf2 = altitude_buf, dist_buf, altitude_buf
-    print(azimuth, dist, altitude)
+    lat = gps_data.lat / precision
+    lon = gps_data.lon / precision
+    alt = gps_data.alt / 1000
+    azimuth, dist, altitude = angles(lat, lon, alt)
+   
+    if dist > 1000:
+        distance = dist/1000
+        print(np.round(azimuth, 2), str(np.round(distance, 2))+" km", np.round(altitude, 2))
+    else:
+        distance = dist
+        print(np.round(azimuth, 2), str(np.round(distance, 2))+" m", np.round(altitude, 2))
 
