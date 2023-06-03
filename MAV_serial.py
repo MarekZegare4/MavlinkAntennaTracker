@@ -14,7 +14,6 @@ import time
 import os.path
 from math import sqrt, sin, cos, asin, degrees, radians
 from pyproj import Geod
-import numpy as np
 
 baudRate = 9600
 ports = serial.tools.list_ports.comports()
@@ -67,7 +66,6 @@ def wait_for_fix():
         fix = gps_data.fix_type
         if fix == 3:
             fixed = True
-        time.sleep(1.0 - ((time.time() - starttime) % 1.0))
     
 def get_gps_data():
     global tracker_lat
@@ -87,7 +85,7 @@ def get_gps_data():
     tracker_alt = float(alt_buf / (10 * 1000)) # convert to from milimeters
     print(tracker_lat, tracker_lon, tracker_alt) # <- Debug
 
-def save_tracker_pos():
+def save_tracker_pos(): 
     input("Press any button to save tracker's location")
     get_gps_data()
     LastPos = (str(tracker_lat)+'\n'+str(tracker_lon)+'\n'+str(tracker_alt)+'\n')
@@ -126,12 +124,12 @@ def cart(lat, lon, alt): # Conversion to cartesian coordinates
     lat_rad = radians(lat)
     lon_rad = radians(lon)
     flat_factor = 1/298.257223563
-    e_squared = 2*flat_factor - flat_factor**2
+    e_squared = 2 * flat_factor - flat_factor ** 2
     a = 6378137.0
-    N = a/(sqrt(1-e_squared*sin(lat_rad)**2))
-    x = (N + alt)*cos(lat_rad)*cos(lon_rad)
-    y = (N + alt)*cos(lat_rad)*sin(lon_rad)
-    z = ((1-e_squared)*N + alt)*sin(lat_rad)
+    N = a/(sqrt(1 - e_squared * sin(lat_rad) ** 2))
+    x = (N + alt) * cos(lat_rad) * cos(lon_rad)
+    y = (N + alt) * cos(lat_rad) * sin(lon_rad)
+    z = ((1 - e_squared) * N + alt) * sin(lat_rad)
     return x, y, z
 
 def angles(lat, lon, alt):
@@ -144,19 +142,10 @@ def angles(lat, lon, alt):
         azimuth -= 360
     mav_coord = cart(lat, lon, alt)
     track_coord = cart(tracker_lat, tracker_lon, tracker_alt)
-    dist = sqrt((mav_coord[0] - track_coord[0])**2 + (mav_coord[1] - track_coord[1])**2 + (mav_coord[2] - track_coord[2])**2)
+    dist = sqrt((mav_coord[0] - track_coord[0]) ** 2 + (mav_coord[1] - track_coord[1]) ** 2 + (mav_coord[2] - track_coord[2]) ** 2)
     h = alt - tracker_alt
     altitude = degrees(asin(h/dist))
     return azimuth, dist, altitude
-
-def print_all():
-    time.sleep(1)
-    print(tracker_lat, end='\r')
-    time.sleep(1)
-    print(tracker_lon, end='\r')
-    time.sleep(1)
-    print(tracker_alt, end='\r')
-    time.sleep(1)
 
 #--------------------------------PROGRAM-LOOP--------------------------------
 
@@ -172,11 +161,10 @@ while True:
     lon = gps_data.lon / precision
     alt = gps_data.alt / 1000
     azimuth, dist, altitude = angles(lat, lon, alt)
-   
     if dist > 1000:
         distance = dist/1000
-        print(np.round(azimuth, 2), str(np.round(distance, 2))+" km", np.round(altitude, 2))
+        print(round(azimuth, 2), str(round(distance, 2))+" km", round(altitude, 2))
     else:
         distance = dist
-        print(np.round(azimuth, 2), str(np.round(distance, 2))+" m", np.round(altitude, 2))
+        print(round(azimuth, 2), str(round(distance, 2))+" m", round(altitude, 2))
 
