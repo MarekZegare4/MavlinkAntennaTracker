@@ -80,10 +80,10 @@ def get_gps_data():
         lon_buf += gps_data.lon
         alt_buf += gps_data.alt
         print(i, gps_data)
-    tracker_lat = float(lat_buf / (10 * precision)) # convert to degrees
+    tracker_lat = float(lat_buf / (10 * precision))                                     # convert to degrees
     tracker_lon = float(lon_buf / (10 * precision)) 
-    tracker_alt = float(alt_buf / (10 * 1000)) # convert to from milimeters
-    print(tracker_lat, tracker_lon, tracker_alt) # <- Debug
+    tracker_alt = float(alt_buf / (10 * 1000))                                          # convert to from milimeters
+    print(tracker_lat, tracker_lon, tracker_alt)                                        # <- Debug
 
 def save_tracker_pos(): 
     input("Press any button to save tracker's location")
@@ -154,7 +154,7 @@ clear_screen()
 connection = connect_serial(baudRate)
 clear_screen()
 set_tracker_pos()
-
+clear_screen()
 while True:
     gps_data = connection.recv_match(type='GPS_RAW_INT', blocking=True)
     lat = gps_data.lat / precision
@@ -163,8 +163,8 @@ while True:
     azimuth, dist, altitude = angles(lat, lon, alt)
     if dist > 1000:
         distance = dist/1000
-        print(round(azimuth, 2), str(round(distance, 2))+" km", round(altitude, 2))
+        print(f'Azimuth(deg): {str(round(azimuth, 2)):7} Distance(km): {str(round(distance, 2)):7} Altutide(deg): {str(round(altitude, 2)):7}', end='\r')
     else:
         distance = dist
-        print(round(azimuth, 2), str(round(distance, 2))+" m", round(altitude, 2))
+        print(f'Azimuth(deg): {str(round(azimuth, 2)):7} Distance(m): {str(round(distance, 2)):7} Altutide(deg): {str(round(altitude, 2)):7}', end='\r')
 
