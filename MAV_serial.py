@@ -110,6 +110,7 @@ def set_tracker_pos():
             tracker_alt = float(file.readline())
             file.close()
             print("Position set")
+            time.sleep(2)
         else:
             wait_for_fix()
             save_tracker_pos()
@@ -146,7 +147,7 @@ def angles(lat, lon, alt):
     h = alt - tracker_alt
     altitude = degrees(asin(h/dist))
     return azimuth, dist, altitude
-
+   
 #--------------------------------PROGRAM-LOOP--------------------------------
 
 startup()
@@ -155,15 +156,24 @@ connection = connect_serial(baudRate)
 clear_screen()
 set_tracker_pos()
 clear_screen()
+buf_az = 0.0
+buf_dist = 0.0
+buf_alt = 0.0
 while True:
     gps_data = connection.recv_match(type='GPS_RAW_INT', blocking=True)
     lat = gps_data.lat / precision
     lon = gps_data.lon / precision
     alt = gps_data.alt / 1000
     azimuth, dist, altitude = angles(lat, lon, alt)
+    diff_az = azimuth - buf_az
+    diff_alt = altitude - buf_dist
+    buf_az = azimuth
+    buf_alt = altitude
+
     if dist > 1000:
         distance = dist/1000
-        print(f'Azimuth(deg): {str(round(azimuth, 2)):7} Distance(km): {str(round(distance, 2)):7} Altutide(deg): {str(round(altitude, 2)):7}', end='\r')
+        print(f'{str(round(diff_az, 2)):5} {str(round(diff_alt, 2)):5}')
+        print(f'Azimuth(deg): {str(round(azimuth, 2)):7} Distance(km): {str(round(distance, 2)):7} Altutide(deg): {str(round(altitude, 2)):7}')
     else:
         distance = dist
         print(f'Azimuth(deg): {str(round(azimuth, 2)):7} Distance(m): {str(round(distance, 2)):7} Altutide(deg): {str(round(altitude, 2)):7}', end='\r')
