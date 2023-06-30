@@ -1,1 +1,1 @@
-# ExpressLRS airtport antenna tracker
+# Mavlink telemetry based antenna tracker
