@@ -134,7 +134,6 @@ def cart(geo_coord):
     z = ((1 - e_squared) * N + geo_coord.alt) * sin(lat_rad)
     return x, y, z
 
-
 startup()
 clear_screen()
 connection = connect_serial(baudRate)
@@ -166,7 +165,7 @@ while True:
 
     if track_data["s12"]/distance >= 1:
         alt_acos = 1
-    inclination = acos(alt_acos)
+    inclination = degrees(acos(alt_acos))
     diff_az = azimuth - buf_az
     diff_alt = inclination - buf_dist
     buf_az = azimuth
